@@ -1,6 +1,25 @@
 <script setup>
 import TaskComp from './components/taskComp.vue'
 import TextBar from './components/textBar.vue'
+
+let tasks = [
+  {
+    title: 'Tarefa 1',
+    id: 1,
+  },
+  {
+    title: 'Tarefa 2',
+    id: 2,
+  },
+  {
+    title: 'Tarefa 3',
+    id: 3,
+  },
+  {
+    title: 'Tarefa 4',
+    id: 4,
+  },
+]
 </script>
 
 <template>
@@ -8,7 +27,7 @@ import TextBar from './components/textBar.vue'
     <div class="block">
       <h1>To-do List <i class="fa-solid fa-list"></i></h1>
       <TextBar />
-      <TaskComp />
+      <TaskComp v-for="task in tasks" :key="task.id" :title="task.title" />
     </div>
   </div>
 </template>

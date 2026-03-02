@@ -1,11 +1,18 @@
-<script setup></script>
+<script>
+export default {
+  props: ['title', 'desc', 'stat', 'id'],
+}
+</script>
 <template>
   <div class="task">
     <div class="item">
-      <h3>Tarefa Tarefa Tarefa</h3>
+      <h3>
+        <button><i class="fa-solid fa-check"></i></button> {{ title }}
+      </h3>
     </div>
     <div class="item dir">
       <h3>
+        <button><i class="fa-solid fa-eye"></i></button>
         <button><i class="fa fa-solid fa-pen-to-square"></i></button>
         <button><i class="fa-solid fa-trash"></i></button>
       </h3>
