@@ -1,10 +1,13 @@
 from rest_framework import serializers
-from .models import Task, Team, Membership
+
+from .models import Membership, Task, Team
+
 
 class TaskSerializer(serializers.ModelSerializer):
   class Meta:
     model = Task
     fields = '__all__'
+    read_only_fields = ['owner']
 
 class TeamSerializer(serializers.ModelSerializer):
   class Meta:

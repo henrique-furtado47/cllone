@@ -11,7 +11,7 @@ router = DefaultRouter()
 
 # Register viewsets which automatically create CRUD endpoints
 # Registra os viewsets que criam endpoints CRUD automaticamente
-router.register(r'tasks', views.TaskViewSet)       # /api/tasks/ endpoints for task objects
+router.register(r'tasks', views.TaskViewSet, basename='task')       # /api/tasks/ endpoints for task objects
 #                     endpoints para objetos de tarefa
 router.register(r'teams', views.TeamViewSet)       # /api/teams/ for team objects
 #                     endpoints para objetos de equipe
