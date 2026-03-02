@@ -1,28 +1,31 @@
 import axios from 'axios'
 
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api/',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+  baseURL: 'http://localhost:8000/api/',
+  headers: {
+    'Content-Type': 'application/json',
+  },
 })
 
-// Injeta o token em toda requisição, exceto no login
+// Injeta o token em toda requisição, exceto em login e register
 api.interceptors.request.use((config) => {
-    const isLoginRequest = config.url === 'auth/login/'
-    if (!isLoginRequest) {
-        const token = localStorage.getItem('token')
-        if (token) {
-            config.headers.Authorization = `Token ${token}`
-        }
+  const publicUrls = ['auth/login/', 'auth/register/']
+  const isPublic = publicUrls.some((url) => config.url === url)
+  if (!isPublic) {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Token ${token}`
     }
-    return config
+  }
+  return config
 })
 
 // ==== Auth ====
 
-export const login = (username, password) =>
-    api.post('auth/login/', { username, password })
+export const login = (username, password) => api.post('auth/login/', { username, password })
+
+export const register = (username, email, password, password2) =>
+  api.post('auth/register/', { username, email, password, password2 })
 
 // ==== Tasks ====
 
