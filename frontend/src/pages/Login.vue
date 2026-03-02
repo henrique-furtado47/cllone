@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-
+console.log('Login.vue renderizado') // Log para verificar renderização
 const router = useRouter()
 const authStore = useAuthStore()
 

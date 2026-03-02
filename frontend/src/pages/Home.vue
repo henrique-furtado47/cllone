@@ -1,6 +1,6 @@
 <script setup>
-import TaskComp from './components/taskComp.vue'
-import TextBar from './components/textBar.vue'
+import TaskComp from '../components/taskComp.vue'
+import TextBar from '../components/textBar.vue'
 
 let tasks = [
   {
@@ -23,7 +23,13 @@ let tasks = [
 </script>
 
 <template>
- <RouterView />
+  <div class="container">
+    <div class="block">
+      <h1>To-do List <i class="fa-solid fa-list"></i></h1>
+      <TextBar />
+      <TaskComp v-for="task in tasks" :key="task.id" :title="task.title" />
+    </div>
+  </div>
 </template>
 
 <style scoped>
