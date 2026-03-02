@@ -1,32 +1,34 @@
 <script setup>
 import TaskComp from './components/taskComp.vue'
 import TextBar from './components/textBar.vue'
+import { ref, onMounted } from 'vue'
+import { getTasks } from './services/api'
 
-let tasks = [
-  {
-    title: 'Tarefa 1',
-    id: 1,
-  },
-  {
-    title: 'Tarefa 2',
-    id: 2,
-  },
-  {
-    title: 'Tarefa 3',
-    id: 3,
-  },
-  {
-    title: 'Tarefa 4',
-    id: 4,
-  },
-]
+const tasks = ref([])
+
+async function loadTasks() {
+  try {
+    const response = await getTasks()
+    tasks.value = response.data
+  } catch (error) {
+    console.error('Erro ao carregar tasks:', error)
+  }
+}
+
+function handleChildAction() {
+  loadTasks()
+}
+
+onMounted(() => {
+  loadTasks()
+})
 </script>
 
 <template>
   <div class="container">
     <div class="block">
       <h1>To-do List <i class="fa-solid fa-list"></i></h1>
-      <TextBar />
+      <TextBar @do-action="handleChildAction" />
       <TaskComp v-for="task in tasks" :key="task.id" :title="task.title" />
     </div>
   </div>
