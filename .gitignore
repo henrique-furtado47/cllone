@@ -5,7 +5,9 @@ venv/
 __pycache__/
 *.py[cod]
 *$py.class
-
+**/__pycache__/
+*.py[cod]
+*$py.class
 # Django stuff:
 db.sqlite3
 /staticfiles/
@@ -41,3 +43,4 @@ htmlcov/
 # Others
 *.log
 
+backend/core/__pycache__/__init__.cpython-313.pyc
