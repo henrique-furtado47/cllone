@@ -27,6 +27,11 @@ export const login = (username, password) => api.post('auth/login/', { username,
 export const register = (username, email, password, password2) =>
   api.post('auth/register/', { username, email, password, password2 })
 
+export const getMe = () => api.get('auth/me/')
+export const updateMe = (data) => api.patch('auth/me/', data)
+export const changePassword = (current_password, new_password, new_password2) =>
+  api.post('auth/change-password/', { current_password, new_password, new_password2 })
+
 // ==== Tasks ====
 
 export const getTasks = () => api.get('tasks/')
