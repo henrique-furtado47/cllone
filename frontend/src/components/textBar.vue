@@ -63,7 +63,7 @@ function handleRequest() {
       }"
     >
       <button class="submit" @mousedown="handleSubmit">
-        <i class="fa fa-search"></i>
+        <i class="fa fa-solid fa-pen"></i>
       </button>
 
       <input
@@ -81,9 +81,7 @@ function handleRequest() {
         opacity: showResponse ? 1 : 0,
         transition: 'opacity 0.3s ease',
       }"
-    >
-      {{ responseText }}
-    </h3>
+    ></h3>
   </div>
 </template>
 <style scoped>
@@ -93,6 +91,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  font-family: 'Ubuntu', sans-serif;
 }
 
 body {
@@ -106,11 +105,9 @@ body {
 
 .container {
   display: block;
-  position: absolute;
   text-align: center;
   width: 100%;
-  top: 50%;
-  padding: 50px 0;
+  margin: 10% 0 0 0;
   transform: translateY(-50%);
   -moz-transform: translateY(-50%);
   -webkit-transform: translateY(-50%);
@@ -177,9 +174,9 @@ h3 {
   width: calc(100% - 50px);
   padding: 0 20px;
   float: left;
-  font-family: 'Lato';
+  font-family: 'Ubuntu', sans-serif;
   font-size: 1em;
-  color: #212121;
+  color: var(--primary-color);
   background-color: white;
 }
 

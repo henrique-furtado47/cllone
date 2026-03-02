@@ -1,4 +1,5 @@
 <script setup>
+import TaskComp from './components/taskComp.vue'
 import TextBar from './components/textBar.vue'
 </script>
 
@@ -7,6 +8,7 @@ import TextBar from './components/textBar.vue'
     <div class="block">
       <h1>To-do List <i class="fa-solid fa-list"></i></h1>
       <TextBar />
+      <TaskComp />
     </div>
   </div>
 </template>
@@ -22,7 +24,6 @@ import TextBar from './components/textBar.vue'
 .block {
   background-color: var(--secondary-color);
   width: 40%;
-  height: 200px;
   margin: 5%;
   padding: 1%;
   border-radius: 15px;
