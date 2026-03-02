@@ -1,22 +1,33 @@
-"""
-URL configuration for core project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.contrib import admin
 from django.urls import path
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
+
+from rest_framework.routers import DefaultRouter
+from django.contrib import admin
+from django.urls import path, include
+from kanban import views
+
+# Router setup for the REST API
+# Configura o roteador para a API REST
+router = DefaultRouter()
+
+# Register viewsets which automatically create CRUD endpoints
+# Registra os viewsets que criam endpoints CRUD automaticamente
+router.register(r'tasks', views.TaskViewSet)       # /api/tasks/ endpoints for task objects
+#                     endpoints para objetos de tarefa
+router.register(r'teams', views.TeamViewSet)       # /api/teams/ for team objects
+#                     endpoints para objetos de equipe
+router.register(r'memberships', views.MembershipViewSet)  # /api/memberships/ associations
+#                     endpoints para associações de membros
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('api/', include(router.urls)),
 ]
+
