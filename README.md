@@ -25,7 +25,7 @@ README.md         # This documentation
 
 ## 🛠 Requirements
 
-- Python 3.8+ and pip (backend)
+- Python 3.12+ and pip (backend)
 - Node.js 14+ and npm/yarn (frontend)
 - Git (to clone the repo)
 
@@ -142,7 +142,7 @@ README.md         # Esta documentação
 
 ### 🛠 Requisitos
 
-- Python 3.8+ e pip (backend)
+- Python 3.12+ e pip (backend)
 - Node.js 14+ e npm/yarn (frontend)
 - Git (para clonar o repositório)
 
