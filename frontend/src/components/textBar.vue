@@ -1,7 +1,6 @@
 <script setup>
-import { createTask } from '@/services/api'
-import { ref, nextTick } from 'vue'
-import { defineEmits } from 'vue'
+import { createTask, getMe } from '@/services/api'
+import { defineEmits, nextTick, onMounted, ref } from 'vue'
 const emit = defineEmits(['do-action'])
 function triggerParent() {
   emit('do-action')
@@ -13,6 +12,19 @@ const responseText = ref('')
 const showResponse = ref(false)
 
 const boxWidth = ref(50)
+
+// Teams do usuário
+const myTeams = ref([])
+const selectedTeam = ref(null)
+
+onMounted(async () => {
+  try {
+    const res = await getMe()
+    myTeams.value = res.data.teams || []
+  } catch {
+    myTeams.value = []
+  }
+})
 
 function toggleState(state) {
   boxWidth.value = state ? 300 : 50
@@ -40,7 +52,9 @@ function handleKeypress(e) {
   }
 }
 
-function handleBlur() {
+function handleBlur(e) {
+  // Não fechar se clicou no select de times
+  if (e.relatedTarget && e.relatedTarget.closest('.team-select')) return
   toggleState(false)
   isOpen.value = false
 }
@@ -50,37 +64,55 @@ async function handleRequest() {
   searchValue.value = ''
 
   if (value.length > 0) {
-    await createTask({
+    const taskData = {
       title: value,
-      description: 'teste',
+      description: '',
       status: 'todo',
-      team: 1,
-      assignee: 1,
-    })
+    }
+    if (selectedTeam.value) {
+      taskData.team = selectedTeam.value
+    }
+    await createTask(taskData)
     triggerParent()
   }
 }
 </script>
 <template>
   <div class="container">
-    <div
-      class="search-box-container"
-      :style="{
-        width: boxWidth + 'px',
-        transition: 'width 0.6s cubic-bezier(.68,-0.55,.27,1.55)',
-      }"
-    >
-      <button class="submit" @mousedown="handleSubmit">
-        <i class="fa fa-solid fa-pen"></i>
-      </button>
+    <div class="input-row">
+      <div
+        class="search-box-container"
+        :style="{
+          width: boxWidth + 'px',
+          transition: 'width 0.6s cubic-bezier(.68,-0.55,.27,1.55)',
+        }"
+      >
+        <button class="submit" @mousedown="handleSubmit">
+          <i class="fa fa-solid fa-pen"></i>
+        </button>
 
-      <input
-        class="search-box"
-        type="text"
-        v-model="searchValue"
-        @keypress="handleKeypress"
-        @blur="handleBlur"
-      />
+        <input
+          class="search-box"
+          type="text"
+          v-model="searchValue"
+          @keypress="handleKeypress"
+          @blur="handleBlur"
+        />
+      </div>
+
+      <Transition name="fade">
+        <select
+          v-if="isOpen && myTeams.length"
+          v-model="selectedTeam"
+          class="team-select"
+          @mousedown.stop
+        >
+          <option :value="null">Pessoal</option>
+          <option v-for="team in myTeams" :key="team.id" :value="team.id">
+            {{ team.name }}
+          </option>
+        </select>
+      </Transition>
     </div>
 
     <h3
@@ -117,10 +149,12 @@ body {
   width: 100%;
   margin: 10% 0 0 0;
   transform: translateY(-50%);
-  -moz-transform: translateY(-50%);
-  -webkit-transform: translateY(-50%);
-  -o-transform: translateY(-50%);
-  -ms-transform: translateY(-50%);
+}
+
+.input-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .container:before {
@@ -132,10 +166,6 @@ body {
   top: 0;
   left: -25%;
   transform: rotate(-3deg);
-  -moz-transform: rotate(-3deg);
-  -webkit-transform: rotate(-3deg);
-  -o-transform: rotate(-3deg);
-  -ms-transform: rotate(-3deg);
   z-index: -1;
 }
 
@@ -165,7 +195,7 @@ h3 {
   padding: 0;
   background-color: white;
   border: 3px solid var(--primary-color);
-  border-radius: 28px; /* (50px + 6px) / 2 */
+  border-radius: 28px;
   overflow: hidden;
 }
 
@@ -204,5 +234,36 @@ h3 {
   line-height: 100%;
   pointer-events: none;
   color: var(--primary-color);
+}
+
+/* Team select */
+.team-select {
+  height: 50px;
+  padding: 0 0.75rem;
+  border: 3px solid var(--primary-color);
+  border-radius: 28px;
+  background-color: white;
+  color: var(--primary-color);
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.team-select:focus {
+  border-color: var(--secondary-color);
+}
+
+/* Fade transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateX(-8px);
 }
 </style>

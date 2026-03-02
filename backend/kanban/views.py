@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.db.models import Q
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
@@ -112,7 +113,11 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
     def get_queryset(self):
-        return Task.objects.filter(owner=self.request.user)
+        user = self.request.user
+        user_teams = user.teams.all()
+        return Task.objects.filter(
+            Q(owner=user, team__isnull=True) | Q(team__in=user_teams)
+        ).distinct()
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
