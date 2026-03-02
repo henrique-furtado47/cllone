@@ -1,14 +1,9 @@
-from django.urls import path
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularSwaggerView,
-    SpectacularRedocView,
-)
-
-from rest_framework.routers import DefaultRouter
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
+from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
+                                   SpectacularSwaggerView)
 from kanban import views
+from rest_framework.routers import DefaultRouter
 
 # Router setup for the REST API
 # Configura o roteador para a API REST
@@ -25,6 +20,7 @@ router.register(r'memberships', views.MembershipViewSet)  # /api/memberships/ as
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/auth/login/', views.login_view, name='login'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
