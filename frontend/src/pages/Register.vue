@@ -1,13 +1,14 @@
 <script setup>
-import { useAuthStore } from '@/stores/auth'
+import { register } from '@/services/api'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-console.log('Login.vue renderizado') // Log para verificar renderização
+
 const router = useRouter()
-const authStore = useAuthStore()
 
 const username = ref('')
+const email = ref('')
 const password = ref('')
+const password2 = ref('')
 const error = ref('')
 const loading = ref(false)
 
@@ -15,10 +16,22 @@ async function handleSubmit() {
     error.value = ''
     loading.value = true
     try {
-        await authStore.login(username.value, password.value)
+        const response = await register(
+            username.value,
+            email.value,
+            password.value,
+            password2.value,
+        )
+        // Salva o token e redireciona para o login
+        localStorage.setItem('token', response.data.token)
+        localStorage.setItem('user', JSON.stringify({ username: username.value }))
         router.push('/')
     } catch (e) {
-        error.value = 'Usuário ou senha inválidos.'
+        if (e.response?.data?.error) {
+            error.value = e.response.data.error
+        } else {
+            error.value = 'Erro ao criar conta. Tente novamente.'
+        }
     } finally {
         loading.value = false
     }
@@ -26,9 +39,9 @@ async function handleSubmit() {
 </script>
 
 <template>
-    <div class="login-wrapper">
-        <form class="login-form" @submit.prevent="handleSubmit">
-            <h2>Login</h2>
+    <div class="register-wrapper">
+        <form class="register-form" @submit.prevent="handleSubmit">
+            <h2>Criar Conta</h2>
 
             <div v-if="error" class="error">{{ error }}</div>
 
@@ -37,9 +50,18 @@ async function handleSubmit() {
                 id="username"
                 v-model="username"
                 type="text"
-                placeholder="Digite seu usuário"
+                placeholder="Escolha um nome de usuário"
                 required
                 autocomplete="username"
+            />
+
+            <label for="email">E-mail (opcional)</label>
+            <input
+                id="email"
+                v-model="email"
+                type="email"
+                placeholder="Digite seu e-mail"
+                autocomplete="email"
             />
 
             <label for="password">Senha</label>
@@ -49,29 +71,39 @@ async function handleSubmit() {
                 type="password"
                 placeholder="Digite sua senha"
                 required
-                autocomplete="current-password"
+                autocomplete="new-password"
+            />
+
+            <label for="password2">Confirmar Senha</label>
+            <input
+                id="password2"
+                v-model="password2"
+                type="password"
+                placeholder="Repita a senha"
+                required
+                autocomplete="new-password"
             />
 
             <button type="submit" :disabled="loading">
-                {{ loading ? 'Entrando...' : 'Entrar' }}
+                {{ loading ? 'Criando...' : 'Criar Conta' }}
             </button>
 
-            <p class="register-link">
-                Não tem conta? <router-link to="/register">Criar conta</router-link>
+            <p class="login-link">
+                Já tem conta? <router-link to="/login">Entrar</router-link>
             </p>
         </form>
     </div>
 </template>
 
 <style scoped>
-.login-wrapper {
+.register-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
 }
 
-.login-form {
+.register-form {
     background-color: var(--secondary-color);
     padding: 2rem;
     border-radius: 15px;
@@ -82,18 +114,18 @@ async function handleSubmit() {
     width: 320px;
 }
 
-.login-form h2 {
+.register-form h2 {
     text-align: center;
     color: white;
     margin-bottom: 0.5rem;
 }
 
-.login-form label {
+.register-form label {
     color: var(--text-color);
     font-size: 0.9rem;
 }
 
-.login-form input {
+.register-form input {
     padding: 0.5rem 0.75rem;
     border-radius: 8px;
     border: none;
@@ -101,7 +133,7 @@ async function handleSubmit() {
     font-size: 1rem;
 }
 
-.login-form button {
+.register-form button {
     margin-top: 0.5rem;
     padding: 0.6rem;
     background-color: var(--primary-color);
@@ -113,7 +145,7 @@ async function handleSubmit() {
     transition: opacity 0.2s;
 }
 
-.login-form button:disabled {
+.register-form button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
@@ -127,20 +159,20 @@ async function handleSubmit() {
     text-align: center;
 }
 
-.register-link {
+.login-link {
     text-align: center;
     color: var(--text-color);
     font-size: 0.85rem;
     margin-top: 0.25rem;
 }
 
-.register-link a {
+.login-link a {
     color: var(--primary-color);
     text-decoration: none;
     font-weight: bold;
 }
 
-.register-link a:hover {
+.login-link a:hover {
     text-decoration: underline;
 }
 </style>
