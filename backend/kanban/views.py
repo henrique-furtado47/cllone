@@ -56,6 +56,58 @@ def register_view(request):
     return Response({'token': token.key}, status=status.HTTP_201_CREATED)
 
 
+@api_view(['GET', 'PATCH'])
+def me_view(request):
+    user = request.user
+    if request.method == 'GET':
+        teams = user.teams.all()
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'teams': [{'id': t.id, 'name': t.name} for t in teams],
+        })
+    # PATCH — atualizar perfil
+    user.first_name = request.data.get('first_name', user.first_name)
+    user.last_name = request.data.get('last_name', user.last_name)
+    user.email = request.data.get('email', user.email)
+    user.save()
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+    })
+
+
+@api_view(['POST'])
+def change_password_view(request):
+    user = request.user
+    current = request.data.get('current_password', '')
+    new_pw = request.data.get('new_password', '')
+    new_pw2 = request.data.get('new_password2', '')
+
+    if not user.check_password(current):
+        return Response(
+            {'error': 'Senha atual incorreta.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not new_pw or new_pw != new_pw2:
+        return Response(
+            {'error': 'As novas senhas não coincidem.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    user.set_password(new_pw)
+    user.save()
+    # Recriar token para manter sessão
+    Token.objects.filter(user=user).delete()
+    token = Token.objects.create(user=user)
+    return Response({'token': token.key, 'message': 'Senha alterada com sucesso.'})
+
+
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 

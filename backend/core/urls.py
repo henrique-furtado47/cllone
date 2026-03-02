@@ -22,6 +22,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/login/', views.login_view, name='login'),
     path('api/auth/register/', views.register_view, name='register'),
+    path('api/auth/me/', views.me_view, name='me'),
+    path('api/auth/change-password/', views.change_password_view, name='change-password'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
