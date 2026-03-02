@@ -1,6 +1,11 @@
 <script setup>
 import { createTask } from '@/services/api'
 import { ref, nextTick } from 'vue'
+import { defineEmits } from 'vue'
+const emit = defineEmits(['do-action'])
+function triggerParent() {
+  emit('do-action')
+}
 
 const isOpen = ref(false)
 const searchValue = ref('')
@@ -40,18 +45,19 @@ function handleBlur() {
   isOpen.value = false
 }
 
-function handleRequest() {
+async function handleRequest() {
   const value = searchValue.value
   searchValue.value = ''
 
   if (value.length > 0) {
-    createTask({
+    await createTask({
       title: value,
       description: 'teste',
       status: 'todo',
       team: 1,
       assignee: 1,
     })
+    triggerParent()
   }
 }
 </script>

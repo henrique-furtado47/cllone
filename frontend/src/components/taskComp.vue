@@ -1,6 +1,6 @@
 <script>
 export default {
-  props: ['title', 'desc', 'stat', 'id'],
+  props: ['title', 'desc', 'stat', 'id', 'runParentFunction'],
 }
 </script>
 <template>
