@@ -1,4 +1,6 @@
 <script setup>
+import Login from './components/Login.vue';
+import Register from './components/Register.vue';
 import TaskComp from './components/taskComp.vue'
 import TextBar from './components/textBar.vue'
 
@@ -24,11 +26,13 @@ let tasks = [
 
 <template>
   <div class="container">
-    <div class="block">
+    <Login />
+    <Register />
+    <!-- <div class="block">
       <h1>To-do List <i class="fa-solid fa-list"></i></h1>
       <TextBar />
       <TaskComp v-for="task in tasks" :key="task.id" :title="task.title" />
-    </div>
+    </div> -->
   </div>
 </template>
 
