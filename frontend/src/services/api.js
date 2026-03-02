@@ -10,18 +10,18 @@ const api = axios.create({
 // ==== Tasks ====
 
 export const getTasks = () => api.get('/tasks/')
-export const getTask = (id) => api.get(`tasks/${id}/`)
+export const getTask = (id) => api.get(`/tasks/${id}/`)
 export const createTask = (data) => api.post('/tasks/', data)
-export const updateTask = (id, data) => api.put(`task/${id}/`, data)
-export const deleteTask = (id) => api.delete(`tasks/${id}`)
+export const updateTask = (id, data) => api.put(`/tasks/${id}/`, data)
+export const deleteTask = (id) => api.delete(`/tasks/${id}`)
 
 // ==== Teams ====
 
 export const getTeams = () => api.get('/teams/')
-export const getTeam = (id) => api.get(`teams/${id}/`)
+export const getTeam = (id) => api.get(`/teams/${id}/`)
 export const createTeam = (data) => api.post('/teams/', data)
-export const updateTeam = (id, data) => api.put(`Team/${id}/`, data)
-export const deleteTeam = (id) => api.delete(`teams/${id}`)
+export const updateTeam = (id, data) => api.put(`/teams/${id}/`, data)
+export const deleteTeam = (id) => api.delete(`/teams/${id}`)
 
 // ==== Memberships ====
 
