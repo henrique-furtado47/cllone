@@ -1,4 +1,5 @@
 <script setup>
+import { createTask } from '@/services/api'
 import { ref, nextTick } from 'vue'
 
 const isOpen = ref(false)
@@ -44,12 +45,13 @@ function handleRequest() {
   searchValue.value = ''
 
   if (value.length > 0) {
-    responseText.value = `Searching for "${value}" . . .`
-    showResponse.value = true
-
-    setTimeout(() => {
-      showResponse.value = false
-    }, 2300)
+    createTask({
+      title: value,
+      description: 'teste',
+      status: 'todo',
+      team: 1,
+      assignee: 1,
+    })
   }
 }
 </script>
