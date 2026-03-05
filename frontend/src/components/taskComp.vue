@@ -1,5 +1,5 @@
 <script>
-import { deleteTask } from '@/services/api'
+import { deleteTask, updateTask } from '@/services/api'
 
 export default {
   props: ['title', 'desc', 'stat', 'id', 'runParentFunction'],
@@ -15,7 +15,19 @@ export default {
         }
       }
     },
-  },
+    async updateTaskHandler() {
+      const newTitle = prompt('Digite o novo título da tarefa:', this.title)
+      if (newTitle !== null && newTitle.trim() !== '') {
+        try {
+          await updateTask(this.id, { title: newTitle })
+          this.runParentFunction()
+        } catch (error) {
+          console.error('Erro ao atualizar tarefa:', error)
+          alert('Erro ao atualizar a tarefa')
+        }
+      }
+    }
+  }
 }
 </script>
 <template>
@@ -28,7 +40,7 @@ export default {
     <div class="item dir">
       <h3>
         <button><i class="fa-solid fa-eye"></i></button>
-        <button><i class="fa fa-solid fa-pen-to-square"></i></button>
+        <button @click="updateTaskHandler"><i class="fa fa-solid fa-pen-to-square"></i></button>
         <button @click="deleteTaskHandler"><i class="fa-solid fa-trash"></i></button>
       </h3>
     </div>
