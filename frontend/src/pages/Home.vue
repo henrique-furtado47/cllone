@@ -29,7 +29,7 @@ onMounted(() => {
     <div class="block">
       <h1>To-do List <i class="fa-solid fa-list"></i></h1>
       <TextBar @do-action="handleChildAction" />
-      <TaskComp v-for="task in tasks" :key="task.id" :title="task.title" />
+      <TaskComp v-for="task in tasks" :key="task.id" :title="task.title" :desc="task.description" :stat="task.status" :id="task.id" :runParentFunction="handleChildAction" />
     </div>
   </div>
 </template>
