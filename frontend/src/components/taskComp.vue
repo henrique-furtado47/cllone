@@ -1,6 +1,21 @@
 <script>
+import { deleteTask } from '@/services/api'
+
 export default {
   props: ['title', 'desc', 'stat', 'id', 'runParentFunction'],
+  methods: {
+    async deleteTaskHandler() {
+      if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+        try {
+          await deleteTask(this.id)
+          this.runParentFunction()
+        } catch (error) {
+          console.error('Erro ao deletar tarefa:', error)
+          alert('Erro ao excluir a tarefa')
+        }
+      }
+    },
+  },
 }
 </script>
 <template>
@@ -14,7 +29,7 @@ export default {
       <h3>
         <button><i class="fa-solid fa-eye"></i></button>
         <button><i class="fa fa-solid fa-pen-to-square"></i></button>
-        <button><i class="fa-solid fa-trash"></i></button>
+        <button @click="deleteTaskHandler"><i class="fa-solid fa-trash"></i></button>
       </h3>
     </div>
   </div>
