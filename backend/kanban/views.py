@@ -1,6 +1,10 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db.models import Q
+from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
+                                   OpenApiResponse, extend_schema,
+                                   extend_schema_view, inline_serializer)
+from rest_framework import serializers as drf_serializers
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
@@ -13,6 +17,35 @@ from .seralizers import (MembershipSerializer, TaskSerializer, TeamSerializer,
                          UserSearchSerializer)
 
 
+@extend_schema(
+    tags=['Auth'],
+    summary='Login',
+    description='Autentica o usuário e retorna um token de acesso.',
+    request=inline_serializer(
+        name='LoginRequest',
+        fields={
+            'username': drf_serializers.CharField(),
+            'password': drf_serializers.CharField(),
+        },
+    ),
+    responses={
+        200: OpenApiResponse(
+            description='Token de autenticação',
+            response=inline_serializer(
+                name='LoginResponse',
+                fields={'token': drf_serializers.CharField()},
+            ),
+        ),
+        401: OpenApiResponse(description='Credenciais inválidas'),
+    },
+    examples=[
+        OpenApiExample(
+            'Login válido',
+            value={'username': 'joao', 'password': 'senha123'},
+            request_only=True,
+        ),
+    ],
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -28,6 +61,30 @@ def login_view(request):
     )
 
 
+@extend_schema(
+    tags=['Auth'],
+    summary='Registro',
+    description='Cria uma nova conta de usuário e retorna o token.',
+    request=inline_serializer(
+        name='RegisterRequest',
+        fields={
+            'username': drf_serializers.CharField(),
+            'email': drf_serializers.EmailField(required=False),
+            'password': drf_serializers.CharField(),
+            'password2': drf_serializers.CharField(help_text='Confirmação da senha'),
+        },
+    ),
+    responses={
+        201: OpenApiResponse(
+            description='Usuário criado com sucesso',
+            response=inline_serializer(
+                name='RegisterResponse',
+                fields={'token': drf_serializers.CharField()},
+            ),
+        ),
+        400: OpenApiResponse(description='Dados inválidos'),
+    },
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):
@@ -59,6 +116,27 @@ def register_view(request):
     return Response({'token': token.key}, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    tags=['Auth'],
+    summary='Perfil do usuário',
+    description='GET: retorna os dados do perfil. PATCH: atualiza nome e email.',
+    responses={
+        200: OpenApiResponse(
+            description='Dados do perfil',
+            response=inline_serializer(
+                name='MeResponse',
+                fields={
+                    'id': drf_serializers.IntegerField(),
+                    'username': drf_serializers.CharField(),
+                    'email': drf_serializers.EmailField(),
+                    'first_name': drf_serializers.CharField(),
+                    'last_name': drf_serializers.CharField(),
+                    'teams': drf_serializers.ListField(required=False),
+                },
+            ),
+        ),
+    },
+)
 @api_view(['GET', 'PATCH'])
 def me_view(request):
     user = request.user
@@ -86,6 +164,23 @@ def me_view(request):
     })
 
 
+@extend_schema(
+    tags=['Auth'],
+    summary='Alterar senha',
+    description='Altera a senha do usuário autenticado e retorna um novo token.',
+    request=inline_serializer(
+        name='ChangePasswordRequest',
+        fields={
+            'current_password': drf_serializers.CharField(),
+            'new_password': drf_serializers.CharField(),
+            'new_password2': drf_serializers.CharField(),
+        },
+    ),
+    responses={
+        200: OpenApiResponse(description='Senha alterada com sucesso'),
+        400: OpenApiResponse(description='Senha atual incorreta ou senhas não coincidem'),
+    },
+)
 @api_view(['POST'])
 def change_password_view(request):
     user = request.user
@@ -111,6 +206,14 @@ def change_password_view(request):
     return Response({'token': token.key, 'message': 'Senha alterada com sucesso.'})
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['Tasks'], summary='Listar tarefas', description='Retorna todas as tarefas do usuário e de seus times.'),
+    retrieve=extend_schema(tags=['Tasks'], summary='Detalhe da tarefa'),
+    create=extend_schema(tags=['Tasks'], summary='Criar tarefa'),
+    update=extend_schema(tags=['Tasks'], summary='Atualizar tarefa'),
+    partial_update=extend_schema(tags=['Tasks'], summary='Atualizar status/campo', description='Use PATCH para alterar apenas o status ou qualquer campo individual.'),
+    destroy=extend_schema(tags=['Tasks'], summary='Excluir tarefa'),
+)
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
@@ -125,6 +228,14 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.save(owner=self.request.user)
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['Teams'], summary='Listar meus times'),
+    retrieve=extend_schema(tags=['Teams'], summary='Detalhe do time'),
+    create=extend_schema(tags=['Teams'], summary='Criar time', description='Cria um novo time. O criador se torna admin automaticamente.'),
+    update=extend_schema(tags=['Teams'], summary='Atualizar time', description='Apenas admins podem editar.'),
+    partial_update=extend_schema(tags=['Teams'], summary='Atualizar parcialmente'),
+    destroy=extend_schema(tags=['Teams'], summary='Excluir time', description='Apenas admins podem excluir.'),
+)
 class TeamViewSet(viewsets.ModelViewSet):
     serializer_class = TeamSerializer
     permission_classes = [IsAuthenticated]
@@ -150,6 +261,19 @@ class TeamViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('Apenas administradores podem excluir o time.')
         instance.delete()
 
+    @extend_schema(
+        tags=['Members'],
+        summary='Adicionar membro',
+        description='Adiciona um usuário ao time pelo username. Apenas admins.',
+        request=inline_serializer(
+            name='AddMemberRequest',
+            fields={
+                'username': drf_serializers.CharField(help_text='Username do usuário a adicionar'),
+                'role': drf_serializers.ChoiceField(choices=['member', 'admin'], default='member'),
+            },
+        ),
+        responses={201: MembershipSerializer, 400: None, 403: None, 404: None},
+    )
     @action(detail=True, methods=['post'], url_path='add-member')
     def add_member(self, request, pk=None):
         """Adiciona um membro ao time. Apenas admins podem adicionar."""
@@ -175,6 +299,16 @@ class TeamViewSet(viewsets.ModelViewSet):
         membership = Membership.objects.create(user=user, team=team, role=role)
         return Response(MembershipSerializer(membership).data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(
+        tags=['Members'],
+        summary='Remover membro',
+        description='Remove um membro do time pelo user_id. Apenas admins.',
+        request=inline_serializer(
+            name='RemoveMemberRequest',
+            fields={'user_id': drf_serializers.IntegerField(help_text='ID do usuário a remover')},
+        ),
+        responses={200: None, 400: None, 403: None, 404: None},
+    )
     @action(detail=True, methods=['post'], url_path='remove-member')
     def remove_member(self, request, pk=None):
         """Remove um membro do time. Apenas admins podem remover."""
@@ -200,6 +334,19 @@ class TeamViewSet(viewsets.ModelViewSet):
         membership.delete()
         return Response({'message': 'Membro removido com sucesso.'}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        tags=['Members'],
+        summary='Alterar papel do membro',
+        description='Promove ou rebaixa um membro. Apenas admins.',
+        request=inline_serializer(
+            name='ChangeRoleRequest',
+            fields={
+                'user_id': drf_serializers.IntegerField(),
+                'role': drf_serializers.ChoiceField(choices=['member', 'admin']),
+            },
+        ),
+        responses={200: MembershipSerializer, 403: None, 404: None},
+    )
     @action(detail=True, methods=['post'], url_path='change-role')
     def change_role(self, request, pk=None):
         """Muda o role de um membro. Apenas admins podem alterar."""
@@ -226,6 +373,15 @@ class MembershipViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
+@extend_schema(
+    tags=['Users'],
+    summary='Buscar usuários',
+    description='Busca usuários por username (mínimo 2 caracteres).',
+    parameters=[
+        OpenApiParameter(name='q', description='Termo de busca', required=True, type=str),
+    ],
+    responses={200: UserSearchSerializer(many=True)},
+)
 @api_view(['GET'])
 def search_users(request):
     """Busca usuários por username para adicionar a times."""
