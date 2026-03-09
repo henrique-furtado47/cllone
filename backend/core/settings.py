@@ -54,8 +54,42 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Cllone API',
-    'DESCRIPTION': 'Cllone API Docs',
+    'DESCRIPTION': (
+        '## 🚀 API do Cllone — Gerenciador de Tarefas e Times\n\n'
+        'API REST completa para gerenciamento de tarefas no estilo Kanban, '
+        'com sistema de times e controle de membros.\n\n'
+        '### Autenticação\n'
+        'Use **Token Authentication**. Inclua o header:\n'
+        '```\nAuthorization: Token <seu_token>\n```\n\n'
+        '### Recursos\n'
+        '| Recurso | Descrição |\n'
+        '|---------|-----------|\n'
+        '| **Auth** | Login, registro, perfil e troca de senha |\n'
+        '| **Tasks** | CRUD de tarefas com status (todo, in_progress, done) |\n'
+        '| **Teams** | Criação e gerenciamento de times |\n'
+        '| **Members** | Adicionar/remover membros e alterar papéis |\n'
+    ),
     'VERSION': '1.0.0',
+    'TAGS': [
+        {'name': 'Auth', 'description': 'Autenticação: login, registro, perfil e senha'},
+        {'name': 'Tasks', 'description': 'CRUD de tarefas com controle de status'},
+        {'name': 'Teams', 'description': 'Gerenciamento de times'},
+        {'name': 'Members', 'description': 'Controle de membros dos times'},
+        {'name': 'Users', 'description': 'Busca de usuários'},
+    ],
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': False,
+        'filter': True,
+        'docExpansion': 'list',
+        'defaultModelsExpandDepth': 2,
+        'tagsSorter': 'alpha',
+        'operationsSorter': 'method',
+    },
+    'SWAGGER_UI_DIST': 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api/',
 }
 
 MIDDLEWARE = [
@@ -74,7 +108,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

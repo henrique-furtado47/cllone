@@ -1,0 +1,241 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Cllone API — Documentação</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui.css" />
+    <style>
+      /* ── Cllone Custom Theme ── */
+      :root {
+        --cllone-primary: #006769;
+        --cllone-secondary: #40a578;
+        --cllone-accent: #9dde8b;
+        --cllone-yellow: #e6ff94;
+      }
+
+      body {
+        margin: 0;
+        background: #f5f7f5;
+      }
+
+      /* Top bar */
+      .swagger-ui .topbar {
+        background: linear-gradient(
+          135deg,
+          var(--cllone-primary) 0%,
+          var(--cllone-secondary) 100%
+        );
+        padding: 12px 0;
+        border-bottom: 3px solid var(--cllone-accent);
+      }
+      .swagger-ui .topbar .download-url-wrapper {
+        display: none;
+      }
+      .swagger-ui .topbar a {
+        display: none;
+      }
+      .swagger-ui .topbar::before {
+        content: "🚀 Cllone API";
+        color: white;
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-left: 2rem;
+        letter-spacing: 1px;
+      }
+
+      /* Info section */
+      .swagger-ui .info {
+        margin: 30px 0 20px;
+      }
+      .swagger-ui .info .title {
+        color: var(--cllone-primary);
+        font-size: 2rem;
+      }
+      .swagger-ui .info .title small.version-stamp {
+        background: var(--cllone-secondary) !important;
+        border-radius: 20px;
+        padding: 4px 12px;
+      }
+
+      /* Tags */
+      .swagger-ui .opblock-tag {
+        border-bottom: 2px solid var(--cllone-accent);
+        font-size: 1.1rem;
+      }
+      .swagger-ui .opblock-tag:hover {
+        background: rgba(157, 222, 139, 0.08);
+      }
+
+      /* HTTP Methods */
+      .swagger-ui .opblock.opblock-post {
+        background: rgba(64, 165, 120, 0.08);
+        border-color: var(--cllone-secondary);
+      }
+      .swagger-ui .opblock.opblock-post .opblock-summary-method {
+        background: var(--cllone-secondary);
+      }
+
+      .swagger-ui .opblock.opblock-get {
+        background: rgba(0, 103, 105, 0.06);
+        border-color: var(--cllone-primary);
+      }
+      .swagger-ui .opblock.opblock-get .opblock-summary-method {
+        background: var(--cllone-primary);
+      }
+
+      .swagger-ui .opblock.opblock-put {
+        background: rgba(230, 126, 34, 0.06);
+        border-color: #e67e22;
+      }
+      .swagger-ui .opblock.opblock-put .opblock-summary-method {
+        background: #e67e22;
+      }
+
+      .swagger-ui .opblock.opblock-patch {
+        background: rgba(142, 68, 173, 0.06);
+        border-color: #8e44ad;
+      }
+      .swagger-ui .opblock.opblock-patch .opblock-summary-method {
+        background: #8e44ad;
+      }
+
+      .swagger-ui .opblock.opblock-delete {
+        background: rgba(231, 76, 60, 0.06);
+        border-color: #e74c3c;
+      }
+      .swagger-ui .opblock.opblock-delete .opblock-summary-method {
+        background: #e74c3c;
+      }
+
+      /* Method badges */
+      .swagger-ui .opblock .opblock-summary-method {
+        border-radius: 6px;
+        font-weight: 700;
+        min-width: 70px;
+        text-align: center;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+      }
+
+      /* Buttons */
+      .swagger-ui .btn.execute {
+        background: var(--cllone-secondary);
+        border-color: var(--cllone-secondary);
+        border-radius: 8px;
+        font-weight: 600;
+      }
+      .swagger-ui .btn.execute:hover {
+        background: var(--cllone-primary);
+        border-color: var(--cllone-primary);
+      }
+
+      .swagger-ui .btn.authorize {
+        color: var(--cllone-secondary);
+        border-color: var(--cllone-secondary);
+        border-radius: 8px;
+        font-weight: 600;
+      }
+      .swagger-ui .btn.authorize:hover {
+        background: rgba(64, 165, 120, 0.08);
+      }
+      .swagger-ui .btn.authorize svg {
+        fill: var(--cllone-secondary);
+      }
+
+      /* Auth dialog */
+      .swagger-ui .dialog-ux .modal-ux-header h3 {
+        color: var(--cllone-primary);
+      }
+
+      /* Models */
+      .swagger-ui section.models {
+        border: 1px solid var(--cllone-accent);
+        border-radius: 10px;
+      }
+      .swagger-ui section.models h4 {
+        color: var(--cllone-primary);
+      }
+
+      /* Try-it-out */
+      .swagger-ui .try-out__btn {
+        color: var(--cllone-secondary);
+        border-color: var(--cllone-secondary);
+        border-radius: 6px;
+      }
+
+      /* Response codes */
+      .swagger-ui .responses-inner h4,
+      .swagger-ui .responses-inner h5 {
+        color: var(--cllone-primary);
+      }
+
+      /* Scrollbar */
+      .swagger-ui ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .swagger-ui ::-webkit-scrollbar-thumb {
+        background: var(--cllone-secondary);
+        border-radius: 3px;
+      }
+
+      /* Links */
+      .swagger-ui a {
+        color: var(--cllone-secondary);
+      }
+      .swagger-ui a:hover {
+        color: var(--cllone-primary);
+      }
+
+      /* Wrapper max-width */
+      .swagger-ui .wrapper {
+        max-width: 1200px;
+      }
+
+      /* Blocks border-radius */
+      .swagger-ui .opblock {
+        border-radius: 8px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+      }
+
+      /* Filter input */
+      .swagger-ui .filter .operation-filter-input {
+        border: 2px solid var(--cllone-accent);
+        border-radius: 8px;
+        padding: 8px 12px;
+      }
+      .swagger-ui .filter .operation-filter-input:focus {
+        border-color: var(--cllone-secondary);
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui-bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui-standalone-preset.js"></script>
+    <script>
+      const ui = SwaggerUIBundle({
+        url: "{{ schema_url|default:'/api/schema/' }}",
+        dom_id: "#swagger-ui",
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+        layout: "StandaloneLayout",
+        deepLinking: true,
+        persistAuthorization: true,
+        filter: true,
+        docExpansion: "list",
+        defaultModelsExpandDepth: 2,
+        tagsSorter: "alpha",
+        operationsSorter: "method",
+      });
+    </script>
+  </body>
+</html>
