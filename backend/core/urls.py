@@ -13,7 +13,7 @@ router = DefaultRouter()
 # Registra os viewsets que criam endpoints CRUD automaticamente
 router.register(r'tasks', views.TaskViewSet, basename='task')       # /api/tasks/ endpoints for task objects
 #                     endpoints para objetos de tarefa
-router.register(r'teams', views.TeamViewSet)       # /api/teams/ for team objects
+router.register(r'teams', views.TeamViewSet, basename='team')       # /api/teams/ for team objects
 #                     endpoints para objetos de equipe
 router.register(r'memberships', views.MembershipViewSet)  # /api/memberships/ associations
 #                     endpoints para associações de membros
@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/auth/register/', views.register_view, name='register'),
     path('api/auth/me/', views.me_view, name='me'),
     path('api/auth/change-password/', views.change_password_view, name='change-password'),
+    path('api/users/search/', views.search_users, name='search-users'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
