@@ -37,7 +37,7 @@ export const changePassword = (current_password, new_password, new_password2) =>
 export const getTasks = () => api.get('tasks/')
 export const getTask = (id) => api.get(`tasks/${id}/`)
 export const createTask = (data) => api.post('tasks/', data)
-export const updateTask = (id, data) => api.put(`tasks/${id}/`, data)
+export const updateTask = (id, data) => api.patch(`tasks/${id}/`, data)
 export const deleteTask = (id) => api.delete(`tasks/${id}/`)
 
 // ==== Teams ====
@@ -47,6 +47,13 @@ export const getTeam = (id) => api.get(`teams/${id}/`)
 export const createTeam = (data) => api.post('teams/', data)
 export const updateTeam = (id, data) => api.put(`teams/${id}/`, data)
 export const deleteTeam = (id) => api.delete(`teams/${id}/`)
+export const addTeamMember = (teamId, data) => api.post(`teams/${teamId}/add-member/`, data)
+export const removeTeamMember = (teamId, data) => api.post(`teams/${teamId}/remove-member/`, data)
+export const changeTeamMemberRole = (teamId, data) => api.post(`teams/${teamId}/change-role/`, data)
+
+// ==== Users ====
+
+export const searchUsers = (query) => api.get(`users/search/?q=${encodeURIComponent(query)}`)
 
 // ==== Memberships ====
 
