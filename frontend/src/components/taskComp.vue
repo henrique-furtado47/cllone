@@ -75,7 +75,7 @@ export default {
 </script>
 <template>
   <div class="task">
-    <div class="item">
+    <div class="item esq">
       <h3>
         <button @click="updateTaskStatus">
           <i v-if="stat == 'done'" class="fa-solid fa-check"></i
@@ -87,6 +87,7 @@ export default {
     </div>
     <div class="item dir">
       <h3>
+        <p v-if="team_name != ''" class="flavour-text">{{ team_name }}</p>
         <p v-if="stat == 'todo'" class="flavour-text">A fazer</p>
         <p v-if="stat == 'in_progress'" class="flavour-text">Em Andamento</p>
         <p v-if="stat == 'done'" class="flavour-text">Feita</p>
@@ -100,20 +101,25 @@ export default {
 .task {
   background-color: white;
   color: var(--primary-color);
-  padding: 10px 20px;
+  padding: 4px 7px;
   border-radius: 15px;
   border: 3px solid var(--primary-color);
   justify-content: space-between;
   display: flex;
+  margin: 10px;
+}
+
+h3 {
+  font-size: 14px;
 }
 
 .item {
-  width: 45%;
+  width: 50%;
 }
 
 .flavour-text {
-  font-size: 14px;
-  margin: 10px;
+  font-size: 12px;
+  margin: 5px;
   background-color: var(--third-color);
   padding: 5px 10px;
   border-radius: 10px;
@@ -125,10 +131,15 @@ export default {
   text-align: right;
 }
 
+.esq {
+  text-align: left;
+  margin-top: 5px;
+}
+
 button {
   border: none;
   background: transparent;
-  margin: 0 10px;
+  margin: 0 7px;
   font-size: large;
   transition: 0.25s;
   color: var(--primary-color);
