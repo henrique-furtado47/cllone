@@ -1,9 +1,22 @@
 <script>
-import { deleteTask, updateTask } from '@/services/api'
+import { deleteTask, getTeam, updateTask } from '@/services/api'
 
 export default {
-  props: ['title', 'desc', 'stat', 'id', 'runParentFunction'],
+  data() {
+    return {
+      team_name: '',
+    }
+  },
+  props: ['title', 'desc', 'stat', 'id', 'runParentFunction', 'team'],
   methods: {
+    async getTeamName() {
+      try {
+        const response = await getTeam(this.team)
+        this.team_name = response.data.name
+      } catch (error) {
+        console.error('Erro ao coletar nome do time:', error)
+      }
+    },
     async deleteTaskHandler() {
       if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
         try {
@@ -26,20 +39,57 @@ export default {
           alert('Erro ao atualizar a tarefa')
         }
       }
-    }
-  }
+    },
+    async updateTaskStatus() {
+      if (this.stat == 'todo') {
+        try {
+          await updateTask(this.id, { status: 'in_progress' })
+          this.runParentFunction()
+        } catch (error) {
+          console.error('Erro ao atualizar tarefa:', error)
+          alert('Erro ao atualizar a tarefa')
+        }
+      } else if (this.stat == 'in_progress') {
+        try {
+          await updateTask(this.id, { status: 'done' })
+          this.runParentFunction()
+        } catch (error) {
+          console.error('Erro ao atualizar tarefa:', error)
+          alert('Erro ao atualizar a tarefa')
+        }
+      } else {
+        try {
+          await updateTask(this.id, { status: 'todo' })
+          this.runParentFunction()
+        } catch (error) {
+          console.error('Erro ao atualizar tarefa:', error)
+          alert('Erro ao atualizar a tarefa')
+        }
+      }
+    },
+  },
+  mounted() {
+    this.getTeamName()
+  },
 }
 </script>
 <template>
   <div class="task">
     <div class="item">
       <h3>
-        <button><i class="fa-solid fa-check"></i></button> {{ title }}
+        <button @click="updateTaskStatus">
+          <i v-if="stat == 'done'" class="fa-solid fa-check"></i
+          ><i v-if="stat == 'todo'" class="fa-solid fa-x"></i>
+          <i v-if="stat == 'in_progress'" class="fa-solid fa-spinner"></i>
+        </button>
+        {{ title }}
       </h3>
     </div>
     <div class="item dir">
       <h3>
-        <button><i class="fa-solid fa-eye"></i></button>
+        <p v-if="stat == 'todo'" class="flavour-text">A fazer</p>
+        <p v-if="stat == 'in_progress'" class="flavour-text">Em Andamento</p>
+        <p v-if="stat == 'done'" class="flavour-text">Feita</p>
         <button @click="updateTaskHandler"><i class="fa fa-solid fa-pen-to-square"></i></button>
         <button @click="deleteTaskHandler"><i class="fa-solid fa-trash"></i></button>
       </h3>
@@ -58,7 +108,17 @@ export default {
 }
 
 .item {
-  width: 40%;
+  width: 45%;
+}
+
+.flavour-text {
+  font-size: 14px;
+  margin: 10px;
+  background-color: var(--third-color);
+  padding: 5px 10px;
+  border-radius: 10px;
+  width: fit-content;
+  display: inline-block;
 }
 
 .dir {
