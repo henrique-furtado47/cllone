@@ -2,9 +2,10 @@
 import { changePassword, getMe } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const open = ref(false)
@@ -93,6 +94,14 @@ const initials = (name) => {
 
 <template>
   <div class="user-menu" ref="menuRef">
+    <button
+      class="teams-nav-btn"
+      @click="router.push('/teams')"
+      :class="{ active: route.path === '/teams' }"
+      title="Meus Times"
+    >
+      <i class="fa-solid fa-people-group"></i>
+    </button>
     <button class="avatar-btn" @click.stop="toggleMenu" :title="authStore.user?.username">
       {{ initials(authStore.user?.username) }}
     </button>
@@ -183,6 +192,33 @@ const initials = (name) => {
   top: 1rem;
   right: 1rem;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.teams-nav-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background-color: var(--primary-color);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.2s;
+}
+.teams-nav-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  color: var(--text-color);
+}
+.teams-nav-btn.active {
+  border-color: var(--text-color);
+  color: var(--text-color);
 }
 
 .avatar-btn {
