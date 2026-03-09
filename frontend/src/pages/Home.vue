@@ -53,7 +53,7 @@ onMounted(() => {
 
 .block {
   background-color: var(--secondary-color);
-  width: 40%;
+  width: 60%;
   margin: 5%;
   padding: 1%;
   border-radius: 15px;

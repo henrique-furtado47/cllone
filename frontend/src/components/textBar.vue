@@ -27,7 +27,7 @@ onMounted(async () => {
 })
 
 function toggleState(state) {
-  boxWidth.value = state ? 300 : 50
+  boxWidth.value = state ? 760 : 50
 }
 
 async function handleSubmit(e) {
@@ -53,7 +53,6 @@ function handleKeypress(e) {
 }
 
 function handleBlur(e) {
-  // Não fechar se clicou no select de times
   if (e.relatedTarget && e.relatedTarget.closest('.team-select')) return
   toggleState(false)
   isOpen.value = false
@@ -259,7 +258,9 @@ h3 {
 /* Fade transition */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
