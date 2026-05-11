@@ -1,0 +1,17 @@
+# Configurações não sensíveis da aplicação
+# Após o deploy, substitua SEU_IP_PUBLICO pelo IP público do master/worker
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cllone-config
+  namespace: cllone
+data:
+  DEBUG: "False"
+  # Para lab/teste use "*". Em produção coloque o domínio real.
+  ALLOWED_HOSTS: "*"
+  DATABASE_ENGINE: postgresql
+  POSTGRES_HOST: postgres-service
+  POSTGRES_PORT: "5432"
+  # Substitua pelo IP público da instância EC2 (porta 30100)
+  CORS_ALLOWED_ORIGINS: "http://SEU_IP_PUBLICO:30100"
+  CSRF_TRUSTED_ORIGINS: "http://SEU_IP_PUBLICO:30100"
