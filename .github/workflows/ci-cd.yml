@@ -85,7 +85,7 @@ jobs:
         with:
           context: .
           file: ./frontend/Dockerfile
-          push: truefrontend-58f9597bdb-gfbrt   1/1     Running   0             3m1s
+          push: true
 
           tags: |
             ${{ env.FRONTEND_IMAGE }}:latest
