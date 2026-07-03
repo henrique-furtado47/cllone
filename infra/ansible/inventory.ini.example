@@ -1,0 +1,18 @@
+# Exemplo de inventory. O arquivo real (inventory.ini) é gerado
+# automaticamente pelo Terraform (local_file). Este exemplo serve apenas
+# para documentar o formato caso queira rodar o Ansible manualmente.
+
+[server]
+<IP_PUBLICO_CONTROL_PLANE> private_ip=<IP_PRIVADO_CONTROL_PLANE>
+
+[agents]
+<IP_PUBLICO_WORKER_1>
+<IP_PUBLICO_WORKER_2>
+<IP_PUBLICO_WORKER_3>
+
+[all:vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file=~/.ssh/cllone
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+control_plane_private_ip=<IP_PRIVADO_CONTROL_PLANE>
+control_plane_public_ip=<IP_PUBLICO_CONTROL_PLANE>

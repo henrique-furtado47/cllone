@@ -1,0 +1,21 @@
+---
+# Variáveis compartilhadas por todos os hosts.
+# Sobrescreva em produção via --extra-vars ou um vault.
+
+# ---- k3s ----
+# O Traefik já vem embutido no k3s (usado pelo Ingress da aplicação).
+
+# ---- ArgoCD ----
+argocd_version_manifest: "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+
+# Aplicar automaticamente a Application do cllone (aponta para o repo GitOps)?
+deploy_cllone_app: true
+cllone_app_manifest: "https://raw.githubusercontent.com/henrique-furtado47/cllone-gitops/main/argocd/application.yaml"
+
+# ---- Secret da aplicação (criado fora do Git, no cluster) ----
+# TROQUE estes valores em uma entrega real (use --extra-vars ou ansible-vault).
+cllone_namespace: cllone
+cllone_secret_key: "troque-esta-chave-secreta-bem-longa-e-aleatoria"
+postgres_db: cllone
+postgres_user: cllone
+postgres_password: "troque-esta-senha-forte"

@@ -1,0 +1,155 @@
+---
+###############################################################################
+# cllone - Configuração do cluster k3s + ArgoCD (GitOps)
+#
+# Uso (após o `terraform apply` gerar o inventory.ini):
+#   cd infra/ansible
+#   ansible-playbook playbook.yml
+#
+# Para trocar segredos:
+#   ansible-playbook playbook.yml -e postgres_password='...' -e cllone_secret_key='...'
+###############################################################################
+
+# ---------------------------------------------------------------------------
+# 1) Control plane: instala o k3s server e captura o node-token
+# ---------------------------------------------------------------------------
+- name: Instalar k3s server (control plane)
+  hosts: server
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Aguardar acesso SSH estar pronto
+      wait_for_connection:
+        timeout: 120
+
+    - name: Instalar k3s server (Traefik incluso; kubeconfig legível; SAN do IP público)
+      shell: |
+        curl -sfL https://get.k3s.io | sh -s - server \
+          --write-kubeconfig-mode 644 \
+          --tls-san {{ control_plane_public_ip }}
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Aguardar o arquivo de token do k3s
+      wait_for:
+        path: /var/lib/rancher/k3s/server/node-token
+        timeout: 60
+
+    - name: Ler o node-token
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: k3s_token_file
+
+    - name: Guardar o token como fact do host
+      set_fact:
+        k3s_node_token: "{{ k3s_token_file.content | b64decode | trim }}"
+
+    - name: Aguardar o nó control plane ficar Ready
+      shell: k3s kubectl wait --for=condition=Ready node --all --timeout=120s
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      changed_when: false
+
+# ---------------------------------------------------------------------------
+# 2) Workers: instalam o k3s agent e fazem join usando o IP privado do master
+# ---------------------------------------------------------------------------
+- name: Instalar k3s agents (workers)
+  hosts: agents
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Aguardar acesso SSH estar pronto
+      wait_for_connection:
+        timeout: 120
+
+    - name: Instalar k3s agent e fazer join no cluster
+      shell: |
+        curl -sfL https://get.k3s.io | \
+          K3S_URL=https://{{ control_plane_private_ip }}:6443 \
+          K3S_TOKEN={{ hostvars[groups['server'][0]]['k3s_node_token'] }} \
+          sh -
+      args:
+        creates: /etc/systemd/system/k3s-agent.service
+
+# ---------------------------------------------------------------------------
+# 3) Control plane: instala o ArgoCD e registra a Application (GitOps)
+# ---------------------------------------------------------------------------
+- name: Instalar ArgoCD e configurar GitOps
+  hosts: server
+  become: true
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  tasks:
+    - name: Conferir os nós do cluster
+      command: k3s kubectl get nodes -o wide
+      register: nodes_out
+      changed_when: false
+
+    - name: Mostrar os nós
+      debug:
+        var: nodes_out.stdout_lines
+
+    - name: Criar namespace argocd
+      command: k3s kubectl create namespace argocd
+      register: argocd_ns
+      changed_when: "'created' in argocd_ns.stdout"
+      failed_when: argocd_ns.rc != 0 and 'AlreadyExists' not in argocd_ns.stderr
+
+    - name: Instalar o ArgoCD (manifests estáveis)
+      command: k3s kubectl apply -n argocd -f {{ argocd_version_manifest }}
+
+    - name: Aguardar o argocd-server ficar disponível
+      command: k3s kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
+      changed_when: false
+
+    - name: Expor o argocd-server via NodePort
+      command: >
+        k3s kubectl -n argocd patch svc argocd-server
+        -p '{"spec":{"type":"NodePort"}}'
+      register: argocd_patch
+      changed_when: "'patched' in argocd_patch.stdout"
+
+    - name: Descobrir o NodePort HTTPS do ArgoCD
+      command: >
+        k3s kubectl -n argocd get svc argocd-server
+        -o jsonpath='{.spec.ports[?(@.port==443)].nodePort}'
+      register: argocd_nodeport
+      changed_when: false
+
+    - name: Ler a senha inicial de admin do ArgoCD
+      command: >
+        k3s kubectl -n argocd get secret argocd-initial-admin-secret
+        -o jsonpath={.data.password}
+      register: argocd_pw_b64
+      changed_when: false
+      failed_when: false
+
+    # ----- Namespace + Secret da aplicação (fora do Git) -----
+    - name: Criar namespace da aplicação
+      command: k3s kubectl create namespace {{ cllone_namespace }}
+      register: app_ns
+      changed_when: "'created' in app_ns.stdout"
+      failed_when: app_ns.rc != 0 and 'AlreadyExists' not in app_ns.stderr
+
+    - name: Criar/atualizar o secret cllone-secrets
+      shell: >
+        k3s kubectl -n {{ cllone_namespace }} create secret generic cllone-secrets
+        --from-literal=SECRET_KEY='{{ cllone_secret_key }}'
+        --from-literal=POSTGRES_DB='{{ postgres_db }}'
+        --from-literal=POSTGRES_USER='{{ postgres_user }}'
+        --from-literal=POSTGRES_PASSWORD='{{ postgres_password }}'
+        --dry-run=client -o yaml | k3s kubectl apply -f -
+
+    # ----- Application do ArgoCD (GitOps) -----
+    - name: Registrar a Application do cllone no ArgoCD
+      command: k3s kubectl apply -f {{ cllone_app_manifest }}
+      when: deploy_cllone_app | bool
+
+    - name: Resumo do acesso
+      debug:
+        msg:
+          - "ArgoCD UI:  https://{{ control_plane_public_ip }}:{{ argocd_nodeport.stdout }}"
+          - "Usuário ArgoCD: admin"
+          - "Senha ArgoCD:   {{ argocd_pw_b64.stdout | default('') | b64decode }}"
+          - "Aplicação:  http://{{ control_plane_public_ip }}/  (frontend via Traefik)"
+          - "API:        http://{{ control_plane_public_ip }}/api/  (backend via Traefik)"
