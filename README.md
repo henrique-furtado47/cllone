@@ -16,9 +16,38 @@ This repository contains the backend and frontend components of the project:
 ## 📁 Repository Structure
 
 ```
-backend/          # Django project (Python)
+backend/          # Django project (Python) — API REST
 frontend/         # Vue 3 + Vite application (JavaScript)
+infra/            # Infraestrutura como Código
+  terraform/      #   provisiona EC2 no AWS Learner Lab (1 control plane + 3 workers)
+  ansible/        #   instala k3s + ArgoCD e configura o cluster
+docs/             # Documentação técnica (DOCUMENTACAO-TECNICA.md)
+.github/workflows # CI/CD (GitHub Actions)
 README.md         # This documentation
+```
+
+---
+
+## 🚢 Infraestrutura, Kubernetes e Deploy contínuo (DevOps)
+
+Este projeto vai além do código da aplicação: inclui provisionamento
+automatizado em nuvem, cluster Kubernetes e deploy via GitOps.
+
+- **Provisionamento (Terraform + Ansible):** veja [`infra/README.md`](infra/README.md).
+  Cria um cluster **k3s** (1 control plane + 3 workers) na AWS e instala o **ArgoCD**.
+- **Manifests / GitOps:** repositório separado
+  [`cllone-gitops`](https://github.com/henrique-furtado47/cllone-gitops)
+  (Kustomize + Traefik Ingress + Adminer).
+- **CI/CD:** GitHub Actions em `.github/workflows/ci-cd.yml` — testa, builda e
+  publica as imagens no Docker Hub e atualiza a tag no repo GitOps; o ArgoCD
+  sincroniza o cluster.
+- **Documentação técnica completa:** [`docs/DOCUMENTACAO-TECNICA.md`](docs/DOCUMENTACAO-TECNICA.md).
+
+Fluxo resumido:
+
+```
+git push → GitHub Actions (testes → build → Docker Hub → bump tag no GitOps) → ArgoCD → k3s
+                                                          Traefik: / → frontend, /api → backend
 ```
 
 ---
