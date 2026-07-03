@@ -96,7 +96,10 @@
       failed_when: argocd_ns.rc != 0 and 'AlreadyExists' not in argocd_ns.stderr
 
     - name: Instalar o ArgoCD (manifests estáveis)
-      command: k3s kubectl apply -n argocd -f {{ argocd_version_manifest }}
+      # --server-side evita o erro "annotations Too long" nos CRDs grandes do ArgoCD
+      command: >
+        k3s kubectl apply -n argocd --server-side=true --force-conflicts
+        -f {{ argocd_version_manifest }}
 
     - name: Aguardar o argocd-server ficar disponível
       command: k3s kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
