@@ -173,12 +173,27 @@ resource "aws_instance" "worker" {
 }
 
 # ---------------------------------------------------------------------------
+# Elastic IP: mantém o IP público do control plane FIXO entre desligamentos
+# do Learner Lab (o cluster reinicia sozinho e o IP não muda).
+# ---------------------------------------------------------------------------
+resource "aws_eip" "control_plane" {
+  domain   = "vpc"
+  instance = aws_instance.control_plane.id
+
+  tags = {
+    Name    = "${var.project_name}-control-plane-eip"
+    Project = var.project_name
+  }
+}
+
+# ---------------------------------------------------------------------------
 # Geração automática do inventory do Ansible a partir dos IPs criados
+# (usa o Elastic IP do control plane, que é estável)
 # ---------------------------------------------------------------------------
 resource "local_file" "ansible_inventory" {
   filename = "${path.module}/../ansible/inventory.ini"
   content = templatefile("${path.module}/templates/inventory.tmpl", {
-    control_plane_public_ip  = aws_instance.control_plane.public_ip
+    control_plane_public_ip  = aws_eip.control_plane.public_ip
     control_plane_private_ip = aws_instance.control_plane.private_ip
     worker_public_ips        = aws_instance.worker[*].public_ip
     ssh_private_key_file     = var.ssh_private_key_path

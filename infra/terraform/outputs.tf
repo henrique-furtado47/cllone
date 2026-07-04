@@ -1,6 +1,6 @@
 output "control_plane_public_ip" {
-  description = "IP público do control plane (SSH, kubectl remoto, Traefik, ArgoCD)"
-  value       = aws_instance.control_plane.public_ip
+  description = "IP público FIXO (Elastic IP) do control plane - SSH, Traefik, ArgoCD"
+  value       = aws_eip.control_plane.public_ip
 }
 
 output "control_plane_private_ip" {
@@ -20,7 +20,7 @@ output "worker_private_ips" {
 
 output "app_url" {
   description = "URL da aplicação (Traefik na porta 80 do control plane)"
-  value       = "http://${aws_instance.control_plane.public_ip}/"
+  value       = "http://${aws_eip.control_plane.public_ip}/"
 }
 
 output "ansible_inventory_path" {
