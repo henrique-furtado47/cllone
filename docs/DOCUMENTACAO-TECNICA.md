@@ -74,6 +74,11 @@ Repo GitOps (cllone-gitops) ──▶ ArgoCD ──▶ Cluster k3s (AWS EC2)
   (80/443 para o Traefik), a API do k3s (6443), a faixa de NodePorts
   (30000–32767) e todo o tráfego interno entre os nós.
 
+  Um **Elastic IP** foi associado ao control plane para manter o IP público
+  **fixo** entre os desligamentos automáticos do Learner Lab (o cluster
+  reinicia sozinho via systemd e volta no mesmo endereço). IP fixo utilizado:
+  **54.152.108.122**.
+
 ---
 
 ## 3. Provisionamento
@@ -115,9 +120,18 @@ Repo GitOps (cllone-gitops) ──▶ ArgoCD ──▶ Cluster k3s (AWS EC2)
   ansible-playbook playbook.yml
   ```
 
-- **Desafios e soluções:**
-  - *Credenciais temporárias do Learner Lab* → exportadas via variáveis de
-    ambiente; erro de auth = token expirado, basta reexportar.
+- **Desafios e soluções (encontrados na prática):**
+  - *Credenciais temporárias do Learner Lab* → exportadas via `~/.aws/credentials`;
+    erro de auth = token expirado, basta recopiar do "AWS Details".
+  - *Instalação do ArgoCD falhava* com `CustomResourceDefinition ... annotations:
+    Too long: may not be more than 262144 bytes` — os CRDs do ArgoCD são grandes
+    demais para o `kubectl apply` padrão (guarda o `last-applied` em annotation).
+    **Solução:** aplicar com `--server-side=true --force-conflicts`.
+  - *IP público mudava a cada desligamento do lab* → resolvido com **Elastic IP**
+    fixo no control plane.
+  - *`ansible.cfg` ignorado* por estar em diretório "world writable" (disco do
+    Windows montado no WSL) → contornado passando `-i inventory.ini`
+    explicitamente (as opções de SSH já ficam no próprio inventory).
   - *Idempotência* → uso de `creates:` nos comandos de instalação do k3s e de
     `--dry-run=client -o yaml | kubectl apply -f -` para o Secret.
   - *Comunicação entre nós* → o join dos workers usa o **IP privado** do master
@@ -127,15 +141,25 @@ Repo GitOps (cllone-gitops) ──▶ ArgoCD ──▶ Cluster k3s (AWS EC2)
 
 ## 4. Cluster Kubernetes
 
-- **Ferramenta:** **k3s** (distribuição Kubernetes leve da Rancher), instalado
-  via Ansible.
+- **Ferramenta:** **k3s** v1.36.2+k3s1 (distribuição Kubernetes leve da Rancher),
+  instalado via Ansible.
 - **Configuração dos nós:** 1 server (control plane) + 3 agents (workers). O
   server roda com `--tls-san <ip_publico>` para permitir `kubectl` remoto e
   `--write-kubeconfig-mode 644` para leitura do kubeconfig. Os agents ingressam
   no cluster com a URL/token do server.
-- **Testes de funcionamento:**
+- **Testes de funcionamento:** o playbook executa `kubectl get nodes` ao final e
+  o resultado confirma os 4 nós `Ready`:
+
+  ```text
+  NAME               STATUS   ROLES           AGE     VERSION
+  ip-172-31-42-133   Ready    control-plane   4m58s   v1.36.2+k3s1
+  ip-172-31-36-168   Ready    <none>          4m11s   v1.36.2+k3s1
+  ip-172-31-38-240   Ready    <none>          4m12s   v1.36.2+k3s1
+  ip-172-31-42-252   Ready    <none>          4m11s   v1.36.2+k3s1
+  ```
+
+  Outras verificações:
   ```bash
-  kubectl get nodes -o wide      # deve listar 4 nós Ready (1 server + 3 agents)
   kubectl get pods -A            # pods de sistema + traefik + argocd + cllone
   kubectl get pods -n cllone     # postgres, backend, frontend, adminer
   ```
@@ -147,9 +171,11 @@ Repo GitOps (cllone-gitops) ──▶ ArgoCD ──▶ Cluster k3s (AWS EC2)
 ## 5. GitOps com ArgoCD
 
 - **Instalação do ArgoCD:** automatizada no `playbook.yml`
-  (`kubectl apply -n argocd -f .../install.yaml`), com espera pelo rollout e
-  *patch* do service `argocd-server` para NodePort. A senha inicial de admin é
-  lida do secret `argocd-initial-admin-secret`.
+  (`kubectl apply -n argocd --server-side=true --force-conflicts -f .../install.yaml`),
+  com espera pelo rollout e *patch* do service `argocd-server` para NodePort. A
+  senha inicial de admin é lida do secret `argocd-initial-admin-secret`. O
+  `--server-side` é necessário porque os CRDs do ArgoCD excedem o limite de
+  tamanho de annotation do `apply` client-side.
 
 - **Configuração do repositório Git:** os manifests ficam no repositório
   separado **cllone-gitops**, organizados com **Kustomize** em `k8s/`:
@@ -179,7 +205,8 @@ Repo GitOps (cllone-gitops) ──▶ ArgoCD ──▶ Cluster k3s (AWS EC2)
   5. o **ArgoCD** detecta o commit e **sincroniza** o cluster automaticamente
      (auto-sync + self-heal + prune).
 
-- **Screenshots do ArgoCD funcionando:** *(inserir na apresentação)*
+- ![alt text](image.png)
+- ![alt text](image-1.png)
   - Tela da *Application* `cllone` com status **Synced/Healthy**;
   - Árvore de recursos (deployments, services, ingress, pods) em verde.
 
@@ -200,15 +227,15 @@ Repo GitOps (cllone-gitops) ──▶ ArgoCD ──▶ Cluster k3s (AWS EC2)
     `Secret cllone-secrets`;
   - configuração não-sensível no `ConfigMap cllone-config`, sensível no `Secret`.
 
-- **Como acessar** (IP público do control plane):
+- **Como acessar** (IP público fixo do control plane = **54.152.108.122**):
 
-  | Recurso           | URL                                  |
-  |-------------------|--------------------------------------|
-  | Frontend          | `http://<IP>/`                       |
-  | API / Swagger     | `http://<IP>/api/`  •  `/api/docs/`  |
-  | Django admin      | `http://<IP>/admin/`                 |
-  | Adminer (banco)   | `http://<IP>:30800/`                 |
-  | ArgoCD            | `https://<IP>:<nodeport>`            |
+  | Recurso           | URL                                          |
+  |-------------------|----------------------------------------------|
+  | Frontend          | `http://54.152.108.122/`                     |
+  | API / Swagger     | `http://54.152.108.122/api/` • `/api/docs/`  |
+  | Django admin      | `http://54.152.108.122/admin/`               |
+  | Adminer (banco)   | `http://54.152.108.122:30800/`               |
+  | ArgoCD            | `https://54.152.108.122:31051` (admin)       |
 
 ---
 

@@ -4,6 +4,11 @@ Provisionamento automatizado do cluster **k3s** (1 control plane + 3 workers) no
 **AWS Learner Lab** com **Terraform**, configuração com **Ansible** e instalação
 do **ArgoCD** para o deploy via GitOps.
 
+> Um **Elastic IP** é associado ao control plane, mantendo o IP público **fixo**
+> mesmo quando o Learner Lab desliga automaticamente (o cluster reinicia sozinho
+> e volta no mesmo endereço). Basta dar Start Lab novamente e reexportar as
+> credenciais para operações com Terraform.
+
 ```
 infra/
 ├── terraform/          # Provisiona as instâncias EC2 + Security Group + key pair
@@ -66,9 +71,14 @@ terraform output
 
 ```bash
 cd ../ansible
-ansible all -m ping                 # valida a conectividade SSH
-ansible-playbook playbook.yml
+ansible all -i inventory.ini -m ping        # valida a conectividade SSH
+ansible-playbook playbook.yml -i inventory.ini
 ```
+
+> **Nota (WSL/Windows):** se rodar de um diretório no disco do Windows montado no
+> WSL (`/mnt/c/...`), o Ansible ignora o `ansible.cfg` por ser "world writable".
+> Por isso passamos o inventory explicitamente com `-i inventory.ini` (as opções
+> de SSH já estão dentro do próprio inventory).
 
 O playbook:
 
